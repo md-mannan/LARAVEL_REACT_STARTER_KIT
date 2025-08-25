@@ -12,7 +12,12 @@ import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { LayoutGrid, Menu } from 'lucide-react';
 import AppLogo from './app-logo';
-import AppLogoIcon from './app-logo-icon';
+
+interface NavItem {
+    title: string;
+    href: string;
+    icon?: React.ComponentType<{ className?: string }>;
+}
 
 const mainNavItems: NavItem[] = [
     {

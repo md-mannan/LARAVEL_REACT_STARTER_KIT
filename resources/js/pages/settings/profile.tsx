@@ -1,60 +1,83 @@
-import { type BreadcrumbItem, type SharedData } from '@/types';
-import { Transition } from '@headlessui/react';
-import { Form, Head, Link, usePage, router } from '@inertiajs/react';
-import { useRef, useState, useEffect } from 'react';
-
-import DeleteUser from '@/components/delete-user';
+import AppLayout from '@/layouts/app-layout';
+import SettingsLayout from '@/layouts/settings/layout';
 import HeadingSmall from '@/components/heading-small';
-import InputError from '@/components/input-error';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import AppLayout from '@/layouts/app-layout';
-import SettingsLayout from '@/layouts/settings/layout';
 import { useInitials } from '@/hooks/use-initials';
-import { Upload, X, Heart } from 'lucide-react';
+import { type SharedData } from '@/types';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Trash2, Upload } from 'lucide-react';
+import { useRef, useState, useEffect } from 'react';
 
-const breadcrumbs: BreadcrumbItem[] = [
+interface UserData {
+    id: number;
+    name: string;
+    email: string;
+    avatar?: string;
+    avatar_url?: string;
+}
+
+interface PhotoHistoryItem {
+    id: number;
+    photo_url?: string;
+    photo_path?: string;
+    is_current: boolean;
+    created_at: string;
+}
+
+interface ContextMenuState {
+    show: boolean;
+    x: number;
+    y: number;
+    photo: PhotoHistoryItem | null;
+}
+
+const breadcrumbs = [
+    {
+        title: 'Settings',
+        href: '/settings',
+    },
     {
         title: 'Profile settings',
         href: '/settings/profile',
     },
 ];
 
-export default function Profile({ mustVerifyEmail, status, userData, photoHistory }: { mustVerifyEmail: boolean; status?: string; userData?: any; photoHistory?: any[] }) {
+export default function Profile({ mustVerifyEmail, status, userData, photoHistory }: { 
+    mustVerifyEmail: boolean; 
+    status?: string; 
+    userData?: UserData; 
+    photoHistory?: PhotoHistoryItem[] 
+}) {
     const { auth } = usePage<SharedData>().props;
     const getInitials = useInitials();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
-    const [contextMenu, setContextMenu] = useState<{
-        show: boolean;
-        x: number;
-        y: number;
-        photo: any;
-    }>({
+    const [contextMenu, setContextMenu] = useState<ContextMenuState>({
         show: false,
         x: 0,
         y: 0,
         photo: null,
     });
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [photoToDelete, setPhotoToDelete] = useState<any>(null);
+    const [photoToDelete, setPhotoToDelete] = useState<PhotoHistoryItem | null>(null);
     
     // Use userData if available, otherwise fall back to auth.user
     const user = userData || auth.user;
 
     // Handle escape key and clicking outside context menu
     useEffect(() => {
-        const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
                 closeContextMenu();
             }
         };
 
-        const handleClickOutside = (e: MouseEvent) => {
+        const handleClickOutside = () => {
             if (contextMenu.show) {
                 closeContextMenu();
             }
@@ -117,12 +140,11 @@ export default function Profile({ mustVerifyEmail, status, userData, photoHistor
 
     const handleRemoveProfilePhoto = () => {
         setIsUploading(true);
-        setShowRemoveConfirm(false);
         
-        // Send request to remove profile photo
-        router.delete(route('profile.photo.remove'), {
+        router.delete(route('profile.photo'), {
             onSuccess: () => {
                 setIsUploading(false);
+                setShowRemoveConfirm(false);
                 // Refresh the page to show updated state
                 window.location.reload();
             },
@@ -136,10 +158,7 @@ export default function Profile({ mustVerifyEmail, status, userData, photoHistor
     const handleSetPhotoAsCurrent = (photoId: number) => {
         setIsUploading(true);
         
-        // Send request to set photo as current
-        router.post(route('profile.photo.set-current'), {
-            photo_id: photoId
-        }, {
+        router.post(route('profile.photo.set-current'), { photo_id: photoId }, {
             onSuccess: () => {
                 setIsUploading(false);
                 // Refresh the page to show updated state
@@ -152,31 +171,14 @@ export default function Profile({ mustVerifyEmail, status, userData, photoHistor
         });
     };
 
-    const handleAddToHistory = () => {
-        setIsUploading(true);
-        
-        // Send request to add current photo to history
-        router.post(route('profile.photo.add-to-history'), {}, {
-            onSuccess: () => {
-                setIsUploading(false);
-                // Refresh the page to show updated state
-                window.location.reload();
-            },
-            onError: () => {
-                setIsUploading(false);
-                alert('Failed to add photo to history. Please try again.');
-            }
-        });
-    };
-
     const handleDeletePhoto = (photoId: number) => {
         setIsUploading(true);
         
-        // Send request to delete photo
-        router.delete(route('profile.photo.delete'), {
-            data: { photo_id: photoId },
+        router.delete(route('profile.photo.delete'), { data: { photo_id: photoId } }, {
             onSuccess: () => {
                 setIsUploading(false);
+                setShowDeleteConfirm(false);
+                setPhotoToDelete(null);
                 // Refresh the page to show updated state
                 window.location.reload();
             },
@@ -187,20 +189,23 @@ export default function Profile({ mustVerifyEmail, status, userData, photoHistor
         });
     };
 
-    const handlePhotoContextMenu = (e: React.MouseEvent, photo: any) => {
-        e.preventDefault();
+    const handlePhotoContextMenu = (event: React.MouseEvent, photo: PhotoHistoryItem) => {
+        event.preventDefault();
         setContextMenu({
             show: true,
-            x: e.clientX,
-            y: e.clientY,
+            x: event.clientX,
+            y: event.clientY,
             photo: photo,
         });
     };
 
-    const handlePhotoClick = (photo: any) => {
+    const handlePhotoClick = (photo: PhotoHistoryItem) => {
         // If it's not the current photo, show a quick preview
         if (!photo.is_current) {
-            setPreviewImage(photo.photo_url || photo.photo_path);
+            const photoUrl = photo.photo_url || photo.photo_path;
+            if (photoUrl) {
+                setPreviewImage(photoUrl);
+            }
         }
     };
 
@@ -212,21 +217,27 @@ export default function Profile({ mustVerifyEmail, status, userData, photoHistor
         if (!contextMenu.photo) return;
         
         switch (action) {
-            case 'make_profile_picture':
+            case 'make_profile_picture': {
                 handleSetPhotoAsCurrent(contextMenu.photo.id);
                 break;
-            case 'download':
+            }
+            case 'download': {
                 // Create download link
                 const link = document.createElement('a');
-                link.href = contextMenu.photo.photo_url || contextMenu.photo.photo_path;
-                link.download = `profile-photo-${contextMenu.photo.id}.jpg`;
-                link.click();
+                const photoUrl = contextMenu.photo.photo_url || contextMenu.photo.photo_path;
+                if (photoUrl) {
+                    link.href = photoUrl;
+                    link.download = `profile-photo-${contextMenu.photo.id}.jpg`;
+                    link.click();
+                }
                 break;
-            case 'delete':
+            }
+            case 'delete': {
                 // Show custom delete confirmation
                 setPhotoToDelete(contextMenu.photo);
                 setShowDeleteConfirm(true);
                 break;
+            }
         }
         
         closeContextMenu();
@@ -300,19 +311,11 @@ export default function Profile({ mustVerifyEmail, status, userData, photoHistor
                                                 size="sm"
                                                 className="text-red-600 border-red-600 hover:bg-red-50"
                                             >
-                                                <X className="size-4 mr-2" />
+                                                <Trash2 className="size-4 mr-2" />
                                                 Remove Photo
                                             </Button>
                                             
-                                            <Button
-                                                onClick={handleAddToHistory}
-                                                variant="outline"
-                                                size="sm"
-                                                className="text-[#614afc] border-[#614afc] hover:bg-[#614afc] hover:text-white"
-                                            >
-                                                <Heart className="size-4 mr-2" />
-                                                Keep in History
-                                            </Button>
+                                            {/* Keep in History button removed as per new_code */}
                                         </div>
                                     )}
                                     
@@ -324,7 +327,7 @@ export default function Profile({ mustVerifyEmail, status, userData, photoHistor
                                             size="sm"
                                             className="text-red-600 border-red-600 hover:bg-red-50"
                                         >
-                                            <X className="size-4 mr-2" />
+                                            <Trash2 className="size-4 mr-2" />
                                             Remove Preview
                                         </Button>
                                     )}
@@ -482,7 +485,7 @@ export default function Profile({ mustVerifyEmail, status, userData, photoHistor
                     <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl dialog-content">
                         <div className="flex items-center gap-3 mb-4">
                             <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                                <X className="w-5 h-5 text-red-600" />
+                                <Trash2 className="w-5 h-5 text-red-600" />
                             </div>
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-900">Remove Profile Photo</h3>
@@ -520,9 +523,7 @@ export default function Profile({ mustVerifyEmail, status, userData, photoHistor
                     <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl dialog-content">
                         <div className="flex items-center gap-3 mb-4">
                             <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                                <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                                </svg>
+                                <Trash2 className="w-5 h-5 text-red-600" />
                             </div>
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-900">Delete Photo</h3>
