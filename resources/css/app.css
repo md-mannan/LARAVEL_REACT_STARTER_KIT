@@ -1,11 +1,4 @@
-@import 'tailwindcss';
-
-@plugin 'tailwindcss-animate';
-
-@source '../views';
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-
-@custom-variant dark (&:is(.dark *));
+@import "tailwindcss";
 
 @theme {
     --font-sans:
@@ -189,52 +182,50 @@
 .header-user-profile {
     background: linear-gradient(135deg, #614afc 0%, #7c5cfc 100%);
     border: 1px solid oklch(0.92 0.01 300);
-    box-shadow: 0 2px 4px #614afc / 0.2);
+    box-shadow: 0 2px 4px rgba(97, 74, 252, 0.2);
     transition: all 0.2s ease;
 }
 
 .header-user-profile:hover {
     background: linear-gradient(135deg, #7c5cfc 0%, #8a6cfc 100%);
-    box-shadow: 0 4px 8px #614afc / 0.3);
+    box-shadow: 0 4px 8px rgba(97, 74, 252, 0.3);
     transform: translateY(-1px);
 }
 
 .dark .header-user-profile {
     background: linear-gradient(135deg, #7c5cfc 0%, #8a6cfc 100%);
     border: 1px solid oklch(0.22 0.03 280);
-    box-shadow: 0 2px 4px #7c5cfc / 0.3);
+    box-shadow: 0 2px 4px rgba(124, 92, 252, 0.3);
 }
 
 .dark .header-user-profile:hover {
     background: linear-gradient(135deg, #8a6cfc 0%, #9a7cfc 100%);
-    box-shadow: 0 4px 8px #7c5cfc / 0.4);
+    box-shadow: 0 4px 8px rgba(124, 92, 252, 0.4);
 }
-
-
 
 /* Sidebar Toggle Button Styles */
 .sidebar-toggle {
     background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
     border: 1px solid #e8eaff;
-    box-shadow: 0 2px 4px #614afc / 0.1);
+    box-shadow: 0 2px 4px rgba(97, 74, 252, 0.1);
     transition: all 0.2s ease;
 }
 
 .sidebar-toggle:hover {
     background: linear-gradient(135deg, #f0f2ff 0%, #e8eaff 100%);
-    box-shadow: 0 4px 8px #614afc / 0.2);
+    box-shadow: 0 4px 8px rgba(97, 74, 252, 0.2);
     transform: translateY(-1px);
 }
 
 .dark .sidebar-toggle {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     border: 1px solid #2d2d5a;
-    box-shadow: 0 2px 4px #7c5cfc / 0.2);
+    box-shadow: 0 2px 4px rgba(124, 92, 252, 0.2);
 }
 
 .dark .sidebar-toggle:hover {
     background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
-    box-shadow: 0 4px 8px #7c5cfc / 0.3);
+    box-shadow: 0 4px 8px rgba(124, 92, 252, 0.3);
 }
 
 /* Ensure User Profile is Always Visible */
