@@ -20,6 +20,7 @@ interface UserData {
     email: string;
     avatar?: string;
     avatar_url?: string;
+    email_verified_at?: string | null;
 }
 
 interface PhotoHistoryItem {
@@ -177,7 +178,8 @@ export default function Profile({ mustVerifyEmail, status, userData, photoHistor
     const handleDeletePhoto = (photoId: number) => {
         setIsUploading(true);
         
-        router.delete(route('profile.photo.delete'), { data: { photo_id: photoId } }, {
+        router.delete(route('profile.photo.delete'), {
+            data: { photo_id: photoId },
             onSuccess: () => {
                 setIsUploading(false);
                 setShowDeleteConfirm(false);
@@ -268,7 +270,7 @@ export default function Profile({ mustVerifyEmail, status, userData, photoHistor
                             <div className="relative group">
                                 <Avatar className="size-24 overflow-hidden rounded-full border-4 border-white shadow-lg">
                                     <AvatarImage 
-                                        src={previewImage || user.avatar_url || user.avatar} 
+                                        src={previewImage || user.avatar_url || user.avatar || undefined} 
                                         alt={user.name} 
                                     />
                                     <AvatarFallback className="rounded-lg bg-gradient-to-br from-[#614afc] to-[#7c5cfc] text-white text-3xl font-semibold">
@@ -353,68 +355,87 @@ export default function Profile({ mustVerifyEmail, status, userData, photoHistor
                     </div>
 
                     {/* Profile Photo History Section */}
-                    {photoHistory && photoHistory.length > 0 && (
-                        <div className="space-y-4">
-                            <HeadingSmall 
-                                title="Photo History" 
-                                description="Your previous profile pictures and uploads" 
-                            />
-                            
-                            <div className="photo-history-gallery">
-                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                                    {photoHistory.map((photo, index) => (
-                                        <div
-                                            key={photo.id}
-                                            className="relative group photo-history-item"
-                                            onClick={() => handlePhotoClick(photo)}
-                                            onContextMenu={(e) => handlePhotoContextMenu(e, photo)}
-                                        >
-                                            <div className="aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-[#614afc] transition-colors cursor-pointer">
-                                                <img
-                                                    src={photo.photo_url || photo.photo_path}
-                                                    alt={`Profile photo ${index + 1}`}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                                
-                                                {/* Current Photo Badge */}
-                                                {photo.is_current && (
-                                                    <div className="absolute top-2 right-2 bg-[#614afc] text-white text-xs px-2 py-1 rounded-full font-medium">
-                                                        Current
+                    <div className="space-y-4">
+                        <HeadingSmall 
+                            title="Photo History" 
+                            description="Your previous profile pictures and uploads (newest first)" 
+                        />
+                        
+                        {photoHistory && photoHistory.length > 0 ? (
+                            <>
+                                <div className="photo-history-gallery">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                                        {photoHistory
+                                            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                                            .map((photo, index) => (
+                                            <div
+                                                key={photo.id}
+                                                className="relative group photo-history-item"
+                                                onClick={() => handlePhotoClick(photo)}
+                                                onContextMenu={(e) => handlePhotoContextMenu(e, photo)}
+                                            >
+                                                <div className="aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-[#614afc] transition-colors cursor-pointer">
+                                                    <img
+                                                        src={photo.photo_url || photo.photo_path}
+                                                        alt={`Profile photo ${index + 1}`}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                    
+                                                    {/* Current Photo Badge */}
+                                                    {photo.is_current && (
+                                                        <div className="absolute top-2 right-2 bg-[#614afc] text-white text-xs px-2 py-1 rounded-full font-medium">
+                                                            Current
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {/* Hover Overlay */}
+                                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                        <Button
+                                                            size="icon"
+                                                            variant="ghost"
+                                                            className="size-8 rounded-full bg-white/20 hover:bg-white/30 text-white"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handlePhotoContextMenu(e, photo);
+                                                            }}
+                                                        >
+                                                            <MoreHorizontal className="size-4" />
+                                                        </Button>
                                                     </div>
-                                                )}
+                                                </div>
                                                 
-                                                {/* Hover Overlay */}
-                                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                    <Button
-                                                        size="icon"
-                                                        variant="ghost"
-                                                        className="size-8 rounded-full bg-white/20 hover:bg-white/30 text-white"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handlePhotoContextMenu(e, photo);
-                                                        }}
-                                                    >
-                                                        <MoreHorizontal className="size-4" />
-                                                    </Button>
+                                                {/* Photo Date */}
+                                                <div className="mt-2 text-center">
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {new Date(photo.created_at).toLocaleDateString()}
+                                                    </p>
                                                 </div>
                                             </div>
-                                            
-                                            {/* Photo Date */}
-                                            <div className="mt-2 text-center">
-                                                <p className="text-xs text-muted-foreground">
-                                                    {new Date(photo.created_at).toLocaleDateString()}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
+                                </div>
+                                
+                                <p className="text-sm text-muted-foreground">
+                                    Right-click on any photo to see options like making it your profile picture, downloading, or deleting.
+                                </p>
+                            </>
+                        ) : (
+                            <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                                <div className="text-gray-500">
+                                    <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <h3 className="text-lg font-medium text-gray-900 mb-2">No Photo History Yet</h3>
+                                    <p className="text-sm text-gray-600 mb-4">
+                                        When you upload profile photos, they'll appear here in chronological order.
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                        Upload your first profile photo to get started!
+                                    </p>
                                 </div>
                             </div>
-                            
-                            <p className="text-sm text-muted-foreground">
-                                Right-click on any photo to see options like making it your profile picture, downloading, or deleting.
-                            </p>
-                        </div>
-                    )}
+                        )}
+                    </div>
 
                     {/* Profile Information Form */}
                     <div className="space-y-4">

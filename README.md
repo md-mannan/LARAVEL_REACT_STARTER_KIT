@@ -1,328 +1,246 @@
 # Laravel React Starter Kit
 
-A modern, full-stack web application starter kit built with Laravel 12, React 19, TypeScript, and Tailwind CSS. This project provides a solid foundation for building scalable web applications with authentication, user management, and a beautiful UI.
+A modern, full-stack web application starter kit built with Laravel 12 and React, featuring Inertia.js for seamless SPA-like experience.
 
 ## 🚀 Features
 
 - **Laravel 12** - Latest Laravel framework with modern PHP 8.2+ features
-- **React 19** - Latest React with modern hooks and patterns
-- **TypeScript** - Full TypeScript support for type safety
+- **React 18** - Modern React with TypeScript support
 - **Inertia.js** - Seamless SPA experience without building an API
-- **Tailwind CSS 4** - Utility-first CSS framework with modern design system
-- **Authentication System** - Complete user registration, login, and password management
-- **User Profile Management** - Profile updates, avatar management, and settings
-- **Modern UI Components** - Radix UI primitives with beautiful Tailwind styling
-- **Responsive Design** - Mobile-first approach with sidebar navigation
-- **Dark/Light Mode** - Theme switching with system preference detection
-- **Queue System** - Background job processing with Laravel queues
-- **Testing** - Pest PHP testing framework with comprehensive test coverage
-
-## 🛠️ Tech Stack
-
-### Backend
-- **Laravel 12** - PHP web framework
-- **PHP 8.2+** - Modern PHP with type hints and attributes
-- **MySQL/PostgreSQL/SQLite** - Database support
-- **Redis** - Caching and session storage
-- **Laravel Queue** - Background job processing
-
-### Frontend
-- **React 19** - JavaScript library for building user interfaces
-- **TypeScript 5.7** - Typed JavaScript
-- **Vite 7** - Fast build tool and dev server
-- **Tailwind CSS 4** - Utility-first CSS framework
-- **Radix UI** - Unstyled, accessible UI primitives
-- **Lucide React** - Beautiful icons
-
-### Development Tools
-- **ESLint** - JavaScript linting
-- **Prettier** - Code formatting
-- **Laravel Pint** - PHP code style fixer
-- **Pest** - PHP testing framework
+- **Vite** - Fast build tool for modern development
+- **Tailwind CSS** - Utility-first CSS framework
+- **Pest** - Testing framework for PHP
+- **TypeScript** - Type-safe JavaScript development
+- **Authentication** - Built-in user authentication system
+- **Profile Management** - User profile photo management
+- **Modern UI Components** - Beautiful, responsive components
 
 ## 📋 Prerequisites
 
-Before you begin, ensure you have the following installed:
+- PHP 8.2 or higher
+- Composer 2.0 or higher
+- Node.js 18 or higher
+- npm or yarn
+- MySQL/PostgreSQL/SQLite database
 
-- **PHP 8.2 or higher**
-- **Composer** (PHP package manager)
-- **Node.js 18+** and **npm**
-- **Database** (MySQL, PostgreSQL, or SQLite)
-- **Redis** (optional, for caching and queues)
+## 🛠️ Installation
 
-## 🚀 Quick Start
+1. **Clone the repository**
+   ```bash
+   git clone <your-repo-url>
+   cd LARAVEL_REACT_STARTER_KIT
+   ```
 
-### 1. Clone the Repository
+2. **Install PHP dependencies**
+   ```bash
+   composer install
+   ```
 
-```bash
-git clone <your-repository-url>
-cd LARAVEL_REACT_STARTER_KIT
-```
+3. **Install Node.js dependencies**
+   ```bash
+   npm install
+   ```
 
-### 2. Install Dependencies
+4. **Environment setup**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
 
-```bash
-# Install PHP dependencies
-composer install
+5. **Database configuration**
+   ```bash
+   # Update .env with your database credentials
+   php artisan migrate
+   php artisan db:seed
+   ```
 
-# Install Node.js dependencies
-npm install
-```
+6. **Build assets**
+   ```bash
+   npm run build
+   ```
 
-### 3. Environment Setup
+## 🚀 Development
 
-```bash
-# Copy environment file
-cp .env.example .env
-
-# Generate application key
-php artisan key:generate
-```
-
-### 4. Configure Database
-
-Edit your `.env` file and set your database credentials:
-
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=your_database_name
-DB_USERNAME=your_username
-DB_PASSWORD=your_password
-```
-
-### 5. Run Migrations
+### Starting the development server
 
 ```bash
-php artisan migrate
-```
-
-### 6. Start Development Servers
-
-```bash
-# Start all development services (Laravel server, queue worker, and Vite)
-composer run dev
-
-# Or start them individually:
-# Terminal 1: Laravel server
+# Start Laravel server
 php artisan serve
 
-# Terminal 2: Queue worker
-php artisan queue:work
-
-# Terminal 3: Vite dev server
+# Start Vite dev server (in another terminal)
 npm run dev
+
+# Or use the combined dev command
+composer run dev
 ```
 
-### 7. Access Your Application
+### Development with SSR (Server-Side Rendering)
 
-- **Frontend**: http://localhost:5173 (Vite dev server) or http://localhost:5174 if 5173 is busy
-- **Backend**: http://localhost:8000 (Laravel server)
-
-## ✅ Current Status
-
-**Project is now fully functional and running successfully!**
-
-- ✅ **Laravel Server**: Running on http://localhost:8000
-- ✅ **Vite Dev Server**: Running on http://localhost:5174
-- ✅ **Tailwind CSS**: Successfully compiled and working
-- ✅ **CSS Issues**: All compilation errors have been resolved
-- ✅ **Dependencies**: All packages properly installed and configured
-
-## 🏗️ Project Structure
-
+```bash
+composer run dev:ssr
 ```
-LARAVEL_REACT_STARTER_KIT/
-├── app/                    # Laravel application logic
-│   ├── Http/              # HTTP layer (controllers, middleware, requests)
-│   ├── Models/            # Eloquent models
-│   └── Providers/         # Service providers
-├── resources/              # Frontend resources
-│   ├── js/                # React components and logic
-│   │   ├── components/    # Reusable UI components
-│   │   ├── hooks/         # Custom React hooks
-│   │   ├── layouts/       # Page layouts
-│   │   ├── pages/         # Page components
-│   │   └── types/         # TypeScript type definitions
-│   └── css/               # Stylesheets
-├── routes/                 # Application routes
-├── database/               # Database migrations and seeders
-├── tests/                  # Test files
-└── config/                 # Configuration files
-```
-
-## 🔐 Authentication Features
-
-The starter kit includes a complete authentication system:
-
-- **User Registration** - New user account creation
-- **User Login** - Secure authentication with session management
-- **Password Reset** - Email-based password recovery
-- **Email Verification** - Optional email verification system
-- **Profile Management** - User profile updates and avatar management
-- **Password Updates** - Secure password change functionality
-
-## 🎨 UI Components
-
-### Core Components
-- **App Shell** - Main application layout with sidebar and header
-- **Navigation** - Responsive sidebar navigation with mobile support
-- **Forms** - Styled form components with validation
-- **Cards** - Content containers with consistent styling
-- **Buttons** - Various button styles and states
-- **Modals** - Dialog components for user interactions
-
-### Design System
-- **Color Scheme** - Consistent color palette with dark/light mode support
-- **Typography** - Hierarchical text styles
-- **Spacing** - Consistent spacing scale
-- **Responsive Breakpoints** - Mobile-first responsive design
 
 ## 🧪 Testing
-
-The project uses Pest PHP for testing:
 
 ```bash
 # Run all tests
 composer test
 
 # Run tests with coverage
-php artisan test --coverage
+composer run test:coverage
+
+# Run specific test files
+./vendor/bin/pest tests/Feature/Auth/
+```
+
+## 📁 Project Structure
+
+```
+├── app/                    # Laravel application logic
+│   ├── Http/             # HTTP layer (controllers, middleware)
+│   ├── Models/           # Eloquent models
+│   └── Providers/        # Service providers
+├── database/              # Database migrations, seeders, factories
+├── resources/             # Frontend assets
+│   ├── js/               # React components and pages
+│   ├── css/              # Stylesheets
+│   └── views/            # Blade templates
+├── routes/                # Application routes
+├── tests/                 # Test files
+└── public/                # Public assets
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+
+Key environment variables in `.env`:
+
+```env
+APP_NAME="Laravel React Starter Kit"
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=laravel_react_starter
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+### Vite Configuration
+
+The project uses Vite for fast development and building. Configuration is in `vite.config.ts`.
+
+## 🎨 Frontend Development
+
+### React Components
+
+Components are located in `resources/js/components/` and follow a modern component architecture.
+
+### Pages
+
+Pages are in `resources/js/pages/` and use Inertia.js for seamless navigation.
+
+### Styling
+
+- **Tailwind CSS** for utility classes
+- **CSS Modules** for component-specific styles
+- **Responsive design** with mobile-first approach
+
+## 🗄️ Database
+
+### Migrations
+
+Run migrations to set up the database:
+
+```bash
+php artisan migrate
+```
+
+### Seeders
+
+Populate the database with sample data:
+
+```bash
+php artisan db:seed
 ```
 
 ## 📦 Available Commands
 
-### Composer Scripts
 ```bash
+# Development
 composer run dev          # Start all development services
-composer run dev:ssr      # Start with SSR support
-composer test             # Run tests
+composer run dev:ssr      # Start development with SSR
+
+# Building
+npm run build            # Build for production
+npm run build:ssr        # Build with SSR support
+
+# Testing
+composer test            # Run tests
+composer run test:coverage # Run tests with coverage
+
+# Code Quality
+composer run pint        # PHP code style fixer
+npm run lint             # JavaScript/TypeScript linting
 ```
 
-### NPM Scripts
-```bash
-npm run dev               # Start Vite dev server
-npm run build             # Build for production
-npm run build:ssr         # Build with SSR support
-npm run lint              # Lint and fix code
-npm run format            # Format code with Prettier
-npm run types             # Check TypeScript types
-```
+## 🔒 Security
 
-### Artisan Commands
-```bash
-php artisan serve         # Start Laravel development server
-php artisan migrate       # Run database migrations
-php artisan queue:work    # Start queue worker
-php artisan key:generate  # Generate application key
-```
+- CSRF protection enabled
+- XSS protection
+- SQL injection protection via Eloquent ORM
+- Secure authentication system
+- Input validation and sanitization
 
-## 🌙 Theme System
-
-The application supports both light and dark themes:
-
-- **System Preference** - Automatically detects user's system theme
-- **Manual Toggle** - Users can manually switch themes
-- **Persistent** - Theme preference is saved in user settings
-- **Responsive** - Theme changes are applied immediately
-
-## 📱 Responsive Design
-
-- **Mobile First** - Designed for mobile devices first
-- **Sidebar Navigation** - Collapsible sidebar for desktop, mobile menu for small screens
-- **Touch Friendly** - Optimized for touch interactions
-- **Breakpoint System** - Consistent responsive breakpoints
-
-## 🔧 Configuration
-
-### Laravel Configuration
-- **Database** - Configure in `.env` file
-- **Queue** - Set queue driver in `.env`
-- **Cache** - Configure cache driver
-- **Session** - Session configuration
-
-### Frontend Configuration
-- **Vite** - Build tool configuration in `vite.config.ts`
-- **Tailwind** - CSS framework configuration
-- **TypeScript** - TypeScript configuration in `tsconfig.json`
-
-## 🚀 Deployment
+## 🌐 Deployment
 
 ### Production Build
-```bash
-# Build frontend assets
-npm run build
 
-# Optimize Laravel
+```bash
+npm run build
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 ```
 
-### Environment Variables
-Ensure these are set in production:
-- `APP_ENV=production`
-- `APP_DEBUG=false`
-- `APP_URL` - Your production URL
-- Database credentials
-- Queue configuration
+### Environment Considerations
+
+- Set `APP_ENV=production`
+- Disable debug mode (`APP_DEBUG=false`)
+- Use production database credentials
+- Configure proper caching
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass
-6. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## 📄 License
+## 📝 License
 
-This project is open-sourced software licensed under the [MIT license](LICENSE).
+This project is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
 ## 🆘 Support
 
 If you encounter any issues or have questions:
 
-1. Check the Laravel documentation
-2. Review the React documentation
-3. Check existing issues in the repository
-4. Create a new issue with detailed information
+1. Check the [Laravel documentation](https://laravel.com/docs)
+2. Check the [Inertia.js documentation](https://inertiajs.com/)
+3. Open an issue in this repository
 
-## 🔄 Updates
+## 🙏 Acknowledgments
 
-To update the starter kit:
-
-```bash
-# Update PHP dependencies
-composer update
-
-# Update Node.js dependencies
-npm update
-
-# Check for breaking changes in major versions
-```
+- [Laravel Team](https://laravel.com/) for the amazing framework
+- [Inertia.js Team](https://inertiajs.com/) for seamless SPA experience
+- [Tailwind CSS](https://tailwindcss.com/) for the utility-first CSS framework
+- [Vite](https://vitejs.dev/) for the fast build tool
 
 ---
 
-**Built with ❤️ using Laravel, React, and modern web technologies**
-
-## 🎯 Getting Started Right Now
-
-Your project is ready to use! Simply run:
-
-```bash
-# Start all services
-composer run dev
-
-# Or start individually
-npm run dev          # Vite dev server
-php artisan serve    # Laravel server
-```
-
-Then visit:
-- **Frontend**: http://localhost:5174 (or 5173 if available)
-- **Backend**: http://localhost:8000
-
-Happy coding! 🚀
+**Built with ❤️ using Laravel and React**

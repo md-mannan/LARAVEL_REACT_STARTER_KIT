@@ -58,7 +58,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                     {/* Profile Photo with Upload */}
                     <div className="relative group flex-shrink-0">
                         <Avatar className="size-12 overflow-hidden rounded-full">
-                            <AvatarImage src={user.avatar_url || user.avatar} alt={user.name} />
+                            <AvatarImage src={user.avatar_url || user.avatar || undefined} alt={user.name} />
                             <AvatarFallback className="rounded-lg bg-gradient-to-br from-[#614afc] to-[#7c5cfc] text-white text-lg font-semibold">
                                 {getInitials(user.name)}
                             </AvatarFallback>

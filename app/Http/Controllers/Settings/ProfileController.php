@@ -21,6 +21,10 @@ class ProfileController extends Controller
     public function edit(Request $request): Response
     {
         $user = $request->user();
+        
+        // Ensure current avatar is in photo history
+        $this->ensureCurrentAvatarInHistory($user);
+        
         $photoHistory = $user->profilePhotoHistory()->orderBy('created_at', 'desc')->get();
         
         return Inertia::render('settings/profile', [
@@ -72,9 +76,18 @@ class ProfileController extends Controller
         // Store new profile photo
         $path = $request->file('profile_photo')->store('profile-photos', 'public');
         
-        // Update user avatar directly (no duplicate history)
+        // Update user avatar
         $user->avatar = $path;
         $user->save();
+        
+        // Add the new photo to history as current
+        ProfilePhotoHistory::create([
+            'user_id' => $user->id,
+            'photo_path' => $path,
+            'used_from' => now(),
+            'used_until' => null,
+            'is_current' => true,
+        ]);
         
         return back()->with('status', 'Profile photo updated successfully!');
     }
@@ -106,31 +119,56 @@ class ProfileController extends Controller
     }
 
     /**
+     * Ensure current avatar is in photo history.
+     */
+    private function ensureCurrentAvatarInHistory($user): void
+    {
+        if ($user->avatar) {
+            // Check if current avatar is already in history
+            $exists = ProfilePhotoHistory::where('user_id', $user->id)
+                ->where('photo_path', $user->avatar)
+                ->exists();
+                
+            if (!$exists) {
+                // Add current avatar to history
+                ProfilePhotoHistory::create([
+                    'user_id' => $user->id,
+                    'photo_path' => $user->avatar,
+                    'used_from' => now()->subDay(), // Approximate
+                    'used_until' => null,
+                    'is_current' => true,
+                ]);
+            }
+        }
+    }
+
+    /**
      * Move current photo to history.
      */
     private function moveCurrentPhotoToHistory($user): void
     {
-        // Only create history if the photo was used for more than 1 day
-        // This prevents creating history for quick changes
-        $currentHistory = ProfilePhotoHistory::where('user_id', $user->id)
-            ->where('is_current', true)
-            ->first();
-            
-        if ($currentHistory) {
-            // Mark current as not current
-            $currentHistory->update([
-                'is_current' => false,
-                'used_until' => now(),
-            ]);
-            
-            // Only add to history if it was used for more than 1 hour
-            $usageTime = now()->diffInHours($currentHistory->used_from);
-            if ($usageTime >= 1) {
-                // Create history record for the old photo
+        // Get the current photo from the user's avatar field
+        $currentAvatarPath = $user->avatar;
+        
+        if ($currentAvatarPath) {
+            // Check if this photo is already in history
+            $existingHistory = ProfilePhotoHistory::where('user_id', $user->id)
+                ->where('photo_path', $currentAvatarPath)
+                ->where('is_current', true)
+                ->first();
+                
+            if ($existingHistory) {
+                // Mark existing history record as not current
+                $existingHistory->update([
+                    'is_current' => false,
+                    'used_until' => now(),
+                ]);
+            } else {
+                // Create a new history record for the current photo
                 ProfilePhotoHistory::create([
                     'user_id' => $user->id,
-                    'photo_path' => $user->avatar,
-                    'used_from' => $currentHistory->used_from,
+                    'photo_path' => $currentAvatarPath,
+                    'used_from' => now()->subDay(), // Approximate when it was set
                     'used_until' => now(),
                     'is_current' => false,
                 ]);
@@ -177,10 +215,14 @@ class ProfileController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        // Move current photo to history (only if it was used for significant time)
+        // Move current photo to history (if it exists)
         if ($user->avatar) {
             $this->moveCurrentPhotoToHistory($user);
         }
+
+        // Mark all other photos as not current
+        ProfilePhotoHistory::where('user_id', $user->id)
+            ->update(['is_current' => false]);
 
         // Set the selected photo as current
         $photoHistory->update([
