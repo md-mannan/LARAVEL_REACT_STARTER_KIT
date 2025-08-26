@@ -7,9 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useInitials } from '@/hooks/use-initials';
 import { type SharedData } from '@/types';
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Trash2, Upload } from 'lucide-react';
+import { Form, Head, Link, router, usePage } from '@inertiajs/react';
+import { Trash2, Upload, MoreHorizontal } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
+import InputError from '@/components/input-error';
+import { Transition } from '@headlessui/react';
+import DeleteUser from '@/components/delete-user';
 
 interface UserData {
     id: number;
@@ -349,134 +352,159 @@ export default function Profile({ mustVerifyEmail, status, userData, photoHistor
                         />
                     </div>
 
-                    {/* Photo History Gallery */}
+                    {/* Profile Photo History Section */}
                     {photoHistory && photoHistory.length > 0 && (
                         <div className="space-y-4">
-                            <HeadingSmall title="Photo History" description="Your previous profile photos" />
+                            <HeadingSmall 
+                                title="Photo History" 
+                                description="Your previous profile pictures and uploads" 
+                            />
                             
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 photo-history-gallery">
-                                {photoHistory.map((photo) => (
-                                    <div key={photo.id} className="relative group photo-history-item">
-                                        <div className="aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-[#614afc] transition-colors cursor-pointer">
-                                            <img
-                                                src={photo.photo_url || photo.photo_path}
-                                                alt="Profile photo"
-                                                className="w-full h-full object-cover"
-                                                onContextMenu={(e) => handlePhotoContextMenu(e, photo)}
-                                                onClick={() => handlePhotoClick(photo)}
-                                            />
-                                            
-                                            {/* Edit Icon (Pencil) - Top Right */}
-                                            <div className="absolute top-2 right-2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                                                <svg className="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                                </svg>
+                            <div className="photo-history-gallery">
+                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                                    {photoHistory.map((photo, index) => (
+                                        <div
+                                            key={photo.id}
+                                            className="relative group photo-history-item"
+                                            onClick={() => handlePhotoClick(photo)}
+                                            onContextMenu={(e) => handlePhotoContextMenu(e, photo)}
+                                        >
+                                            <div className="aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-[#614afc] transition-colors cursor-pointer">
+                                                <img
+                                                    src={photo.photo_url || photo.photo_path}
+                                                    alt={`Profile photo ${index + 1}`}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                                
+                                                {/* Current Photo Badge */}
+                                                {photo.is_current && (
+                                                    <div className="absolute top-2 right-2 bg-[#614afc] text-white text-xs px-2 py-1 rounded-full font-medium">
+                                                        Current
+                                                    </div>
+                                                )}
+                                                
+                                                {/* Hover Overlay */}
+                                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                    <Button
+                                                        size="icon"
+                                                        variant="ghost"
+                                                        className="size-8 rounded-full bg-white/20 hover:bg-white/30 text-white"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handlePhotoContextMenu(e, photo);
+                                                        }}
+                                                    >
+                                                        <MoreHorizontal className="size-4" />
+                                                    </Button>
+                                                </div>
                                             </div>
                                             
-                                            {/* Current indicator */}
-                                            {photo.is_current && (
-                                                <div className="absolute top-2 left-2 bg-[#614afc] text-white text-xs px-2 py-1 rounded-full">
-                                                    Current
-                                                </div>
-                                            )}
+                                            {/* Photo Date */}
+                                            <div className="mt-2 text-center">
+                                                <p className="text-xs text-muted-foreground">
+                                                    {new Date(photo.created_at).toLocaleDateString()}
+                                                </p>
+                                            </div>
                                         </div>
-                                        
-                                        {/* Photo date */}
-                                        <p className="text-xs text-gray-500 mt-1 text-center">
-                                            {new Date(photo.created_at).toLocaleDateString()}
-                                        </p>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
+                            
+                            <p className="text-sm text-muted-foreground">
+                                Right-click on any photo to see options like making it your profile picture, downloading, or deleting.
+                            </p>
                         </div>
                     )}
 
-                    <HeadingSmall title="Profile information" description="Update your name and email address" />
+                    {/* Profile Information Form */}
+                    <div className="space-y-4">
+                        <HeadingSmall title="Profile Information" description="Update your account's profile information and email address" />
+                        
+                        <Form
+                            method="patch"
+                            action={route('profile.update')}
+                            options={{
+                                preserveScroll: true,
+                            }}
+                            className="space-y-6"
+                        >
+                            {({ processing, recentlySuccessful, errors }) => (
+                                <>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="name">Name</Label>
 
-                    <Form
-                        method="patch"
-                        action={route('profile.update')}
-                        options={{
-                            preserveScroll: true,
-                        }}
-                        className="space-y-6"
-                    >
-                        {({ processing, recentlySuccessful, errors }) => (
-                            <>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="name">Name</Label>
+                                        <Input
+                                            id="name"
+                                            className="mt-1 block w-full"
+                                            defaultValue={user.name}
+                                            name="name"
+                                            required
+                                            autoComplete="name"
+                                            placeholder="Full name"
+                                        />
 
-                                    <Input
-                                        id="name"
-                                        className="mt-1 block w-full"
-                                        defaultValue={user.name}
-                                        name="name"
-                                        required
-                                        autoComplete="name"
-                                        placeholder="Full name"
-                                    />
-
-                                    <InputError className="mt-2" message={errors.name} />
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="email">Email address</Label>
-
-                                    <Input
-                                        id="email"
-                                        type="email"
-                                        className="mt-1 block w-full"
-                                        defaultValue={user.email}
-                                        name="email"
-                                        required
-                                        autoComplete="username"
-                                        placeholder="Email address"
-                                    />
-
-                                    <InputError className="mt-2" message={errors.email} />
-                                </div>
-
-                                {mustVerifyEmail && user.email_verified_at === null && (
-                                    <div>
-                                        <p className="-mt-4 text-sm text-muted-foreground">
-                                            Your email address is unverified.{' '}
-                                            <Link
-                                                href={route('verification.send')}
-                                                method="post"
-                                                as="button"
-                                                className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
-                                            >
-                                                Click here to resend the verification email.
-                                            </Link>
-                                        </p>
-
-                                        {status === 'verification-link-sent' && (
-                                            <div className="mt-2 text-sm font-medium text-green-600">
-                                                A new verification link has been sent to your email address.
-                                            </div>
-                                        )}
+                                        <InputError className="mt-2" message={errors.name} />
                                     </div>
-                                )}
 
-                                <div className="flex items-center gap-4">
-                                    <Button disabled={processing}>Save</Button>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="email">Email address</Label>
 
-                                    <Transition
-                                        show={recentlySuccessful}
-                                        enter="transition ease-in-out"
-                                        enterFrom="opacity-0"
-                                        leave="transition ease-in-out"
-                                        leaveTo="opacity-0"
-                                    >
-                                        <p className="text-sm text-neutral-600">Saved</p>
-                                    </Transition>
-                                </div>
-                            </>
-                        )}
-                    </Form>
+                                        <Input
+                                            id="email"
+                                            type="email"
+                                            className="mt-1 block w-full"
+                                            defaultValue={user.email}
+                                            name="email"
+                                            required
+                                            autoComplete="username"
+                                            placeholder="Email address"
+                                        />
+
+                                        <InputError className="mt-2" message={errors.email} />
+                                    </div>
+
+                                    {mustVerifyEmail && user.email_verified_at === null && (
+                                        <div>
+                                            <p className="-mt-4 text-sm text-muted-foreground">
+                                                Your email address is unverified.{' '}
+                                                <Link
+                                                    href={route('verification.send')}
+                                                    method="post"
+                                                    as="button"
+                                                    className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
+                                                >
+                                                    Click here to resend the verification email.
+                                                </Link>
+                                            </p>
+
+                                            {status === 'verification-link-sent' && (
+                                                <div className="mt-2 text-sm font-medium text-green-600">
+                                                    A new verification link has been sent to your email address.
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-center gap-4">
+                                        <Button disabled={processing}>Save</Button>
+
+                                        <Transition
+                                            show={recentlySuccessful}
+                                            enter="transition ease-in-out"
+                                            enterFrom="opacity-0"
+                                            leave="transition ease-in-out"
+                                            leaveTo="opacity-0"
+                                        >
+                                            <p className="text-sm text-neutral-600">Saved</p>
+                                        </Transition>
+                                    </div>
+                                </>
+                            )}
+                        </Form>
+                    </div>
+
+                    <DeleteUser />
                 </div>
-
-                <DeleteUser />
             </SettingsLayout>
             
             {/* Custom Remove Photo Confirmation Dialog */}
